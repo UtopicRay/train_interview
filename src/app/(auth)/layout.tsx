@@ -1,7 +1,7 @@
 import { ReactNode } from 'react'
 
-export default function layout({children}:{children:ReactNode}) {
+export default function AuthLayout({children}:{children:ReactNode}) {
   return (
-    <div>{children}</div>
+    <div className='auth-layout'>{children}</div>
   )
 }
