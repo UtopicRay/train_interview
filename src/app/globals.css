@@ -252,7 +252,7 @@
         px-4;
     }
     .interviews-section {
-        @apply flex max-lg:flex-wrap gap-4/**/
+        @apply flex flex-wrap gap-4 lg:flex-row/**/
         flex-col w-full items-stretch;
     }
     .interview-text {
