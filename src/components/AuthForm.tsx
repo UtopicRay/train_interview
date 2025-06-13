@@ -12,6 +12,9 @@ import Link from "next/link"
 import { toast } from "sonner"
 import FormField from "./FormField"
 import { useRouter } from "next/navigation"
+import { auth } from "@/firebase/client"
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth"
+import { signIn,singUp } from "@/lib/actions/auth.actions"
 
 
 const authSchema=(type:FormType)=>{
@@ -37,14 +40,34 @@ export default function AuthForm({type}:{type:FormType}) {
     })
    
     // 2. Define a submit handler.
-    function onSubmit(values: z.infer<typeof formSchema>) {
+   async function onSubmit(values: z.infer<typeof formSchema>) {
     try{
       if(type==='sign-in'){
+        const {email,password}=values
+        const isAuth=await signInWithEmailAndPassword(auth,email,password)
+        const idToken=await isAuth.user.getIdToken()
+        if(!idToken){
+         return toast.error('Failed to sign in')
+        }
+        await signIn({email,idToken})
         toast.success('Sign in successfully')
         router.push('/')
       }
       if(type==='sign-up'){
-        toast.success('Account created successfully')
+        const {name,email,password}=values
+        const isAuth=await createUserWithEmailAndPassword(auth,email,password)
+        const idToken=await isAuth.user.getIdToken()
+        if(!idToken){
+          return toast.error('Failed to sign up')
+        }
+        const results=await singUp({uid:isAuth.user.uid,
+          name: name!,
+          email,
+        password})
+        if(!results.success){
+          return toast.error(results.error)
+        }
+        toast.success('Account created successfully. Please sign in')
         router.push('/sign-in')
       }
     }catch(error){
@@ -69,7 +92,6 @@ export default function AuthForm({type}:{type:FormType}) {
       )}
       <FormField control={form.control} label="Email" name="email" placeholder="Enter your email" type="email"/>
       <FormField control={form.control} label="Password" name="password" placeholder="Enter your password" type="password"></FormField>
-       <p>Password</p>
         <Button className="btn" type="submit">{isSignIn()?'Sign In': "Create an Account"}</Button>
       </form>
     </Form>
